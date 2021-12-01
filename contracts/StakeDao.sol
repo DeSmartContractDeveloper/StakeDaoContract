@@ -17,6 +17,7 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("devt stake dao", "DSD") {
     IERC20 public devt;
     uint256 public startTime = 1632976189;
 
+    //no tranfer flag
     bool public noTransfer = true;
 
     mapping(address => uint256) public deposits;
@@ -26,6 +27,7 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("devt stake dao", "DSD") {
         _;
     }
 
+    //from the start time, calculate the minimum stake amount
     function checkAmount() public view returns (uint256) {
         uint256 day = ((block.timestamp.sub(startTime)).div(86400));
         int128 logVariable = ABDKMath64x64.log_2(
@@ -50,10 +52,12 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("devt stake dao", "DSD") {
         ERC20._transfer(sender, recipient, amount);
     }
 
+    // setup no tranfer flag
     function setNoTransfer(bool _noTransfer) public onlyOwner {
         noTransfer = _noTransfer;
     }
 
+    //staking DEVT, get DSD
     function stake(uint256 _samount) public checkStart nonReentrant {
         require(_samount >= checkAmount(), "StakeDao: not enough amount");
         devt.transferFrom(msg.sender, address(this), _samount * 10**18);
