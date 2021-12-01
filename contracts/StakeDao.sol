@@ -7,8 +7,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "abdk-libraries-solidity/ABDKMath64x64.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract StakeDao is Ownable, ERC20("devt stake dao", "DSD") {
+contract StakeDao is Ownable, ReentrancyGuard, ERC20("devt stake dao", "DSD") {
     using SafeMath for uint256;
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
@@ -53,7 +54,7 @@ contract StakeDao is Ownable, ERC20("devt stake dao", "DSD") {
         noTransfer = _noTransfer;
     }
 
-    function stake(uint256 _samount) public checkStart {
+    function stake(uint256 _samount) public checkStart nonReentrant {
         require(_samount >= checkAmount(), "StakeDao: not enough amount");
         devt.transferFrom(msg.sender, address(this), _samount * 10**18);
         _mint(msg.sender, _samount * 10**18);
@@ -61,8 +62,8 @@ contract StakeDao is Ownable, ERC20("devt stake dao", "DSD") {
         emit Staked(msg.sender, _samount * 10**18);
     }
 
-    function withdraw(uint256 _amount) public {
-		uint256 amount = balanceOf(msg.sender);
+    function withdraw(uint256 _amount) public nonReentrant {
+        uint256 amount = balanceOf(msg.sender);
         require(amount > 0, "StakeDao: no stake");
         require(_amount == amount, "StakeDao: amount error");
 
