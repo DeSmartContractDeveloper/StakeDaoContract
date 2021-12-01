@@ -1,0 +1,2 @@
+# StakeDaoContract
+$devt stake contract
