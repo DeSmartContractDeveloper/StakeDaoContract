@@ -4,12 +4,10 @@ pragma solidity ^0.8.3;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "abdk-libraries-solidity/ABDKMath64x64.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract StakeDao is Ownable, ReentrancyGuard, ERC20("devt stake dao", "DSD") {
-    using SafeMath for uint;
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
 
@@ -22,7 +20,7 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("devt stake dao", "DSD") {
     mapping(address => uint256) public deposits;
 
     modifier checkStart() {
-        require(block.timestamp >= startTime, "StakeDao: not start");
+        require(block.timestamp >= startTime, "StakeDao: no start");
         _;
     }
 
