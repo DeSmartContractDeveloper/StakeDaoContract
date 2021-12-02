@@ -1,15 +1,26 @@
-# Basic Sample Hardhat Project
+# StakeDao Contract
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+Users can obtain the same amount of DSD by staking DEVT
+
+DSD stands for DEVT Staking DAO. They are DEVT locked for the purpose of voting.
+
+DSD is not allowed to be traded, but in the future, you can vote through proposals in the DAO to determine whether it can be traded
+
+The minimum amount of DEVT required for a single pledge will increase as the number of days increases.
+
+DSD can be exchanged for DEVT at any time, but once initiated, all DSD must be exchanged at once.
+
+You can only vote using your voting weight at the block where a proposal was created.
+
+
+
+
 
 Try running some of the following tasks:
 
 ```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
+
 npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
+npm run test
+
 ```
