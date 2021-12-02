@@ -6,7 +6,7 @@ const increaseWorldTimeInDays = async (days, mine = false) => {
     await ethers.provider.send('evm_mine', []);
   }
 };
-describe("test checkAmount",function(){
+describe("test contract",function(){
   beforeEach(async () => {
     const DEVTToken = await hre.ethers.getContractFactory("DEVTToken");
      token = await DEVTToken.deploy();
@@ -25,23 +25,48 @@ describe("test checkAmount",function(){
     amount  = await dao.checkAmount();
     console.log(amount.toString(),"get checkAmount")
 
-    for(let i=0;i<365;i++){
-      await increaseWorldTimeInDays(1,true);
-      amount  = await dao.checkAmount();
-      console.log(amount.toString(),`get ${i} checkAmount`)
-    }
-  })
+    // for(let i=0;i<3;i++){
+    //   await increaseWorldTimeInDays(1,true);
+    //   amount  = await dao.checkAmount();
+    //   console.log(amount.toString(),`get ${i} checkAmount`)
+    // }
+  });
+
+  it("test stake branch process ", async function(){
+    const buyerAddress = await hre.ethers.getSigners();
+    let num = await dao.checkAmount();
+    num = num.toString();
+    num = (parseInt(num) -1).toString()
+    await token.connect(buyerAddress[0]).transfer(buyerAddress[3].address,hre.ethers.utils.parseEther(num));
+    let nums = await token.balanceOf(buyerAddress[3].address);
+    expect(nums).to.equal(hre.ethers.utils.parseEther(num));
+    await expect( dao.connect(buyerAddress[3]).stake(num)).to.be.revertedWith("StakeDao: not enough amount");
+  });
+
+  it("test withdraw branch process ", async function(){
+    const buyerAddress = await hre.ethers.getSigners();
+    let num = await dao.checkAmount();
+    num = num.toString();
+    await expect( dao.connect(buyerAddress[4]).withdraw(num)).to.be.revertedWith("StakeDao: no stake");
+
+
+    await token.connect(buyerAddress[0]).transfer(buyerAddress[4].address,hre.ethers.utils.parseEther(num));
+    await token.connect(buyerAddress[4]).approve(dao.address,hre.ethers.utils.parseEther(num));
+    await dao.connect(buyerAddress[4]).stake(num);
+    num = (parseInt(num) -1).toString()
+    await expect( dao.connect(buyerAddress[4]).withdraw(hre.ethers.utils.parseEther(num))).to.be.revertedWith("StakeDao: amount error");
+
+  });
+
   it("test stake", async function(){
    
     const buyerAddress = await hre.ethers.getSigners();
-
-   
-    let num ='900';
+    let num = await dao.checkAmount();
+    num = num.toString();
     await token.connect(buyerAddress[0]).transfer(buyerAddress[1].address,hre.ethers.utils.parseEther(num));
     let nums = await token.balanceOf(buyerAddress[1].address);
     expect(nums).to.equal(hre.ethers.utils.parseEther(num));
 
-    console.log(nums.toString(),111);
     let res =await token.connect(buyerAddress[1]).approve(dao.address,nums.toString());
     res.wait();
 
@@ -65,7 +90,6 @@ describe("test checkAmount",function(){
     nums = await dao.balanceOf(buyerAddress[1].address);
     expect(nums).to.equal("0");
 
-
     res =await token.connect(buyerAddress[1]).approve(dao.address,hre.ethers.utils.parseEther(num));
     res.wait();
 
@@ -74,6 +98,7 @@ describe("test checkAmount",function(){
   
     expect(deposits.toString()).to.equal(hre.ethers.utils.parseEther(num));
 
+    await expect(dao.connect(buyerAddress[1]).transfer(buyerAddress[2].address,hre.ethers.utils.parseEther(num))).to.be.revertedWith("StakeDao: no transfer") ;
     await dao.connect(buyerAddress[0]).setNoTransfer(false);
     await dao.connect(buyerAddress[1]).transfer(buyerAddress[2].address,hre.ethers.utils.parseEther(num));
 

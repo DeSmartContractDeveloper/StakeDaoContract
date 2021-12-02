@@ -54,7 +54,7 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("devt stake dao", "DSD") {
     }
 
     //staking DEVT, get DSD
-    function stake(uint256 _samount) public checkStart nonReentrant {
+    function stake(uint256 _samount) public nonReentrant {
         require(_samount >= checkAmount(), "StakeDao: not enough amount");
         devt.transferFrom(msg.sender, address(this), _samount * 10**18);
         _mint(msg.sender, _samount * 10**18);
@@ -62,7 +62,7 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("devt stake dao", "DSD") {
         emit Staked(msg.sender, _samount * 10**18);
     }
 
-    function withdraw(uint256 _amount) public nonReentrant {
+    function withdraw(uint256 _amount) public checkStart nonReentrant {
         uint256 amount = balanceOf(msg.sender);
         require(amount > 0, "StakeDao: no stake");
         require(_amount == amount, "StakeDao: amount error");

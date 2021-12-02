@@ -10,9 +10,10 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.4.0",
-    "abdk-libraries-solidity": "^3.0.0"
+    "abdk-libraries-solidity": "^3.0.0",
+    "solidity-coverage": "^0.7.17"
   },
   "scripts": {
-    "test": "npx hardhat --network localhost test"
+    "test": "npx hardhat coverage"
   }
 }
