@@ -5,17 +5,16 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "abdk-libraries-solidity/ABDKMath64x64.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract StakeDao is Ownable, ReentrancyGuard, ERC20("devt stake dao", "DSD") {
-    using SafeMath for uint256;
+    using SafeMath for uint;
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
 
     IERC20 public devt;
-    uint256 public startTime = 1632976189;
+    uint256 public startTime = 1638416028;
 
     //no tranfer flag
     bool public noTransfer = true;
@@ -28,14 +27,13 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("devt stake dao", "DSD") {
     }
 
     //from the start time, calculate the minimum stake amount
-    function checkAmount() public view returns (uint256) {
-        uint256 day = ((block.timestamp.sub(startTime)).div(86400));
+    function checkAmount() public checkStart view returns (uint256) {
+        uint256 day = (block.timestamp - startTime) / 86400;
         int128 logVariable = ABDKMath64x64.log_2(
-            ABDKMath64x64.fromUInt((day.mul(3)).add(2))
-        );
-        uint256 currentAmount = uint256(ABDKMath64x64.toUInt(logVariable)).mul(
-            100
-        );
+            ABDKMath64x64.fromUInt(day * 3 + 2)
+        )*100;
+      
+        uint256 currentAmount = uint256(ABDKMath64x64.toUInt(logVariable));
         return currentAmount;
     }
 

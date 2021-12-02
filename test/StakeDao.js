@@ -1,5 +1,11 @@
 const { expect } = require("chai");
 let dao,token;
+const increaseWorldTimeInDays = async (days, mine = false) => {
+  await ethers.provider.send('evm_increaseTime', [days*86400]);
+  if (mine) {
+    await ethers.provider.send('evm_mine', []);
+  }
+};
 describe("test checkAmount",function(){
   beforeEach(async () => {
     const DEVTToken = await hre.ethers.getContractFactory("DEVTToken");
@@ -15,8 +21,15 @@ describe("test checkAmount",function(){
     
   })
   it("test checkAmount", async function(){
-    const amount  = await dao.checkAmount();
+    let amount;
+    amount  = await dao.checkAmount();
     console.log(amount.toString(),"get checkAmount")
+
+    for(let i=0;i<365;i++){
+      await increaseWorldTimeInDays(1,true);
+      amount  = await dao.checkAmount();
+      console.log(amount.toString(),`get ${i} checkAmount`)
+    }
   })
   it("test stake", async function(){
    
