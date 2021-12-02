@@ -1,16 +1,14 @@
 # StakeDao Contract
 
-Users can obtain the same amount of DSD by staking DEVT
+Users can obtain the same amount of DD (DeHorizon DAO) by staking a certain amount of DEVT.
 
-DSD stands for DEVT Staking DAO. They are DEVT locked for the purpose of voting.
+The minimum amount of DEVT required for single staking will increase as the number of days increases.
 
-DSD is not allowed to be traded, but in the future, you can vote through proposals in the DAO to determine whether it can be traded
+DD is the membership certificate of each DAO member, which stands for the rights of participating in DAO governance, voting, and much more.
 
-The minimum amount of DEVT required for a single pledge will increase as the number of days increases.
+Currently, DD does not have a transaction function, and whether to add this function in the future will be decided by DAO members by voting.
 
-DSD can be exchanged for DEVT at any time, but once initiated, all DSD must be exchanged at once.
-
-You can only vote using your voting weight at the block where a proposal was created.
+DD can be swapped into DEVT at any time, but only swapping all DD is allowed. After the swap is completed, it means that you have withdrawn from DAO.
 
 
 

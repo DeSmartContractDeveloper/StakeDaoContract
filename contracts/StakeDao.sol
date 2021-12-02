@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "abdk-libraries-solidity/ABDKMath64x64.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract StakeDao is Ownable, ReentrancyGuard, ERC20("devt stake dao", "DSD") {
+contract StakeDao is Ownable, ReentrancyGuard, ERC20("DeHorizon DAO", "DD") {
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
 
