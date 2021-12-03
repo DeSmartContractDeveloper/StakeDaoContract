@@ -40,21 +40,21 @@ describe("test contract",function(){
     await token.connect(buyerAddress[0]).transfer(buyerAddress[3].address,hre.ethers.utils.parseEther(num));
     let nums = await token.balanceOf(buyerAddress[3].address);
     expect(nums).to.equal(hre.ethers.utils.parseEther(num));
-    await expect( dao.connect(buyerAddress[3]).stake(num)).to.be.revertedWith("StakeDao: not enough amount");
+    await expect( dao.connect(buyerAddress[3]).stake(num)).to.be.revertedWith("DeHorizon DAO: not enough amount");
   });
 
   it("test withdraw branch process ", async function(){
     const buyerAddress = await hre.ethers.getSigners();
     let num = await dao.checkAmount();
     num = num.toString();
-    await expect( dao.connect(buyerAddress[4]).withdraw(num)).to.be.revertedWith("StakeDao: no stake");
+    await expect( dao.connect(buyerAddress[4]).withdraw(num)).to.be.revertedWith("DeHorizon DAO: no stake");
 
 
     await token.connect(buyerAddress[0]).transfer(buyerAddress[4].address,hre.ethers.utils.parseEther(num));
     await token.connect(buyerAddress[4]).approve(dao.address,hre.ethers.utils.parseEther(num));
     await dao.connect(buyerAddress[4]).stake(num);
     num = (parseInt(num) -1).toString()
-    await expect( dao.connect(buyerAddress[4]).withdraw(hre.ethers.utils.parseEther(num))).to.be.revertedWith("StakeDao: amount error");
+    await expect( dao.connect(buyerAddress[4]).withdraw(hre.ethers.utils.parseEther(num))).to.be.revertedWith("DeHorizon DAO: amount error");
 
   });
 
@@ -98,7 +98,7 @@ describe("test contract",function(){
   
     expect(deposits.toString()).to.equal(hre.ethers.utils.parseEther(num));
 
-    await expect(dao.connect(buyerAddress[1]).transfer(buyerAddress[2].address,hre.ethers.utils.parseEther(num))).to.be.revertedWith("StakeDao: no transfer") ;
+    await expect(dao.connect(buyerAddress[1]).transfer(buyerAddress[2].address,hre.ethers.utils.parseEther(num))).to.be.revertedWith("DeHorizon DAO: no transfer") ;
     await dao.connect(buyerAddress[0]).setNoTransfer(false);
     await dao.connect(buyerAddress[1]).transfer(buyerAddress[2].address,hre.ethers.utils.parseEther(num));
 

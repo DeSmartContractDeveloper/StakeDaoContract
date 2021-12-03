@@ -20,7 +20,7 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("DeHorizon DAO", "DD") {
     mapping(address => uint256) public deposits;
 
     modifier checkStart() {
-        require(block.timestamp >= startTime, "StakeDao: no start");
+        require(block.timestamp >= startTime, "DeHorizon DAO: no start");
         _;
     }
 
@@ -44,7 +44,7 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("DeHorizon DAO", "DD") {
         address recipient,
         uint256 amount
     ) internal override(ERC20) {
-        require(!noTransfer, "StakeDao: no transfer");
+        require(!noTransfer, "DeHorizon DAO: no transfer");
         ERC20._transfer(sender, recipient, amount);
     }
 
@@ -55,7 +55,7 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("DeHorizon DAO", "DD") {
 
     //staking DEVT, get DSD
     function stake(uint256 _samount) public nonReentrant {
-        require(_samount >= checkAmount(), "StakeDao: not enough amount");
+        require(_samount >= checkAmount(), "DeHorizon DAO: not enough amount");
         devt.transferFrom(msg.sender, address(this), _samount * 10**18);
         _mint(msg.sender, _samount * 10**18);
 
@@ -64,8 +64,8 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("DeHorizon DAO", "DD") {
 
     function withdraw(uint256 _amount) public checkStart nonReentrant {
         uint256 amount = balanceOf(msg.sender);
-        require(amount > 0, "StakeDao: no stake");
-        require(_amount == amount, "StakeDao: amount error");
+        require(amount > 0, "DeHorizon DAO: no stake");
+        require(_amount == amount, "DeHorizon DAO: amount error");
 
         _burn(msg.sender, amount);
         devt.transfer(msg.sender, amount);
