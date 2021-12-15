@@ -25,11 +25,11 @@ describe("test contract",function(){
     amount  = await dao.checkAmount();
     console.log(amount.toString(),"get checkAmount")
 
-    // for(let i=0;i<3;i++){
-    //   await increaseWorldTimeInDays(1,true);
-    //   amount  = await dao.checkAmount();
-    //   console.log(amount.toString(),`get ${i} checkAmount`)
-    // }
+    for(let i=0;i<30;i++){
+      await increaseWorldTimeInDays(1,true);
+      amount  = await dao.checkAmount();
+      console.log(amount.toString(),`get ${i} checkAmount`)
+    }
   });
 
   it("test stake branch process ", async function(){

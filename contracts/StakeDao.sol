@@ -12,7 +12,7 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("DeHorizon DAO", "DD") {
     event Withdrawn(address indexed user, uint256 amount);
 
     IERC20 public devt;
-    uint256 public startTime = 1638416028;
+    uint256 public startTime;
 
     //no tranfer flag
     bool public noTransfer = true;
@@ -37,6 +37,7 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("DeHorizon DAO", "DD") {
 
     constructor(address _devt) public {
         devt = IERC20(_devt);
+        startTime = block.timestamp;
     }
 
     function _transfer(
