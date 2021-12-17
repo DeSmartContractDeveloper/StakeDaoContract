@@ -10,6 +10,8 @@ Currently, DD does not have a transaction function, and whether to add this func
 
 DD can be swapped into DEVT at any time, but only swapping all DD is allowed. After the swap is completed, it means that you have withdrawn from DAO.
 
+$\log_2 (day *3 +2) *100$
+
 # DevtMine Contract
 Obtain ERC20 token by staking ERC20 token
 

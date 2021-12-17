@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "abdk-libraries-solidity/ABDKMath64x64.sol";
@@ -11,21 +10,14 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("DeHorizon DAO", "DD") {
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
 
-    IERC20 public devt;
-    uint256 public startTime;
+    ERC20 public immutable devt;
+    uint256 public immutable startTime;
 
     //no tranfer flag
     bool public noTransfer = true;
 
-    mapping(address => uint256) public deposits;
-
-    modifier checkStart() {
-        require(block.timestamp >= startTime, "DeHorizon DAO: no start");
-        _;
-    }
-
-    //from the start time, calculate the minimum stake amount
-    function checkAmount() public checkStart view returns (uint256) {
+    /// @notice From the start time, calculate the minimum stake amount
+    function checkAmount() public view returns (uint256) {
         uint256 day = (block.timestamp - startTime) / 86400;
         int128 logVariable = ABDKMath64x64.log_2(
             ABDKMath64x64.fromUInt(day * 3 + 2)
@@ -36,10 +28,12 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("DeHorizon DAO", "DD") {
     }
 
     constructor(address _devt) public {
-        devt = IERC20(_devt);
+        require(_devt != address(0), "DeHorizon DAO: set address is zero");
+        devt = ERC20(_devt);
         startTime = block.timestamp;
     }
 
+    /// @notice Determine whether to allow the transaction when trading
     function _transfer(
         address sender,
         address recipient,
@@ -49,13 +43,15 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("DeHorizon DAO", "DD") {
         ERC20._transfer(sender, recipient, amount);
     }
 
-    // setup no tranfer flag
-    function setNoTransfer(bool _noTransfer) public onlyOwner {
-        noTransfer = _noTransfer;
+     /// @notice Set whether to allow transactions
+    function setTransferFlag() external onlyOwner {
+        noTransfer = !noTransfer;
     }
 
-    //staking DEVT, get DSD
-    function stake(uint256 _samount) public nonReentrant {
+    /// @notice staking DEVT, get DSD
+    /// @param _samount is staking devt nums
+    
+    function stake(uint256 _samount ) external nonReentrant {
         require(_samount >= checkAmount(), "DeHorizon DAO: not enough amount");
         devt.transferFrom(msg.sender, address(this), _samount * 10**18);
         _mint(msg.sender, _samount * 10**18);
@@ -63,11 +59,10 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("DeHorizon DAO", "DD") {
         emit Staked(msg.sender, _samount * 10**18);
     }
 
-    function withdraw(uint256 _amount) public checkStart nonReentrant {
+    /// @notice withdraw DEVT, burn DSD
+    function withdraw() external nonReentrant {
         uint256 amount = balanceOf(msg.sender);
         require(amount > 0, "DeHorizon DAO: no stake");
-        require(_amount == amount, "DeHorizon DAO: amount error");
-
         _burn(msg.sender, amount);
         devt.transfer(msg.sender, amount);
 

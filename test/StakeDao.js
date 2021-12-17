@@ -25,11 +25,11 @@ describe("test stake doocontract",function(){
     amount  = await dao.checkAmount();
     console.log(amount.toString(),"get checkAmount")
 
-    // for(let i=0;i<30;i++){
-    //   await increaseWorldTimeInDays(1,true);
-    //   amount  = await dao.checkAmount();
-    //   console.log(amount.toString(),`get ${i} checkAmount`)
-    // }
+    for(let i=0;i<30;i++){
+      await increaseWorldTimeInDays(1,true);
+      amount  = await dao.checkAmount();
+      console.log(amount.toString(),`get ${i} checkAmount`)
+    }
   });
 
   it("test stake branch process ", async function(){
@@ -47,14 +47,7 @@ describe("test stake doocontract",function(){
     const buyerAddress = await hre.ethers.getSigners();
     let num = await dao.checkAmount();
     num = num.toString();
-    await expect( dao.connect(buyerAddress[4]).withdraw(num)).to.be.revertedWith("DeHorizon DAO: no stake");
-
-
-    await token.connect(buyerAddress[0]).transfer(buyerAddress[4].address,hre.ethers.utils.parseEther(num));
-    await token.connect(buyerAddress[4]).approve(dao.address,hre.ethers.utils.parseEther(num));
-    await dao.connect(buyerAddress[4]).stake(num);
-    num = (parseInt(num) -1).toString()
-    await expect( dao.connect(buyerAddress[4]).withdraw(hre.ethers.utils.parseEther(num))).to.be.revertedWith("DeHorizon DAO: amount error");
+    await expect( dao.connect(buyerAddress[4]).withdraw()).to.be.revertedWith("DeHorizon DAO: no stake");
 
   });
 
@@ -80,7 +73,7 @@ describe("test stake doocontract",function(){
     nums = await dao.balanceOf(buyerAddress[1].address);
     expect(nums).to.equal(hre.ethers.utils.parseEther(num));
 
-    await dao.connect(buyerAddress[1]).withdraw(deposits.toString());
+    await dao.connect(buyerAddress[1]).withdraw();
     deposits= await dao.balanceOf(buyerAddress[1].address);
     expect(deposits.toString()).to.equal('0');
 
@@ -99,7 +92,7 @@ describe("test stake doocontract",function(){
     expect(deposits.toString()).to.equal(hre.ethers.utils.parseEther(num));
 
     await expect(dao.connect(buyerAddress[1]).transfer(buyerAddress[2].address,hre.ethers.utils.parseEther(num))).to.be.revertedWith("DeHorizon DAO: no transfer") ;
-    await dao.connect(buyerAddress[0]).setNoTransfer(false);
+    await dao.connect(buyerAddress[0]).setTransferFlag();
     await dao.connect(buyerAddress[1]).transfer(buyerAddress[2].address,hre.ethers.utils.parseEther(num));
 
     deposits= await dao.balanceOf(buyerAddress[1].address);

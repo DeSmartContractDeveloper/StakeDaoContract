@@ -69,6 +69,7 @@ describe("test DevtMine contract", function () {
     await devtMine
       .connect(account1)
       .deposit(hre.ethers.utils.parseEther(account1StakingNum), 0);
+      
     await devtMine
       .connect(account2)
       .deposit(hre.ethers.utils.parseEther(account2StakingNum), 2);
