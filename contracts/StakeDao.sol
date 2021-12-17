@@ -48,7 +48,7 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("DeHorizon DAO", "DD") {
         noTransfer = !noTransfer;
     }
 
-    /// @notice staking DEVT, get DSD
+    /// @notice staking DEVT, get DD
     /// @param _samount is staking devt nums
     
     function stake(uint256 _samount ) external nonReentrant {
@@ -59,7 +59,7 @@ contract StakeDao is Ownable, ReentrancyGuard, ERC20("DeHorizon DAO", "DD") {
         emit Staked(msg.sender, _samount * 10**18);
     }
 
-    /// @notice withdraw DEVT, burn DSD
+    /// @notice withdraw DEVT, burn DD
     function withdraw() external nonReentrant {
         uint256 amount = balanceOf(msg.sender);
         require(amount > 0, "DeHorizon DAO: no stake");
