@@ -153,7 +153,7 @@ describe("test DevtMine contract", function () {
       devtMine.connect(account1).withdraw()
     ).to.be.revertedWith("Position is still locked");
   });
-  it("test kill", async function () {
+  it("test recycleLeftovers", async function () {
     await expect(devtMine.connect(buyerAddress[0]).init()).to.be.revertedWith(
       "No rewards sent"
     );
@@ -165,14 +165,16 @@ describe("test DevtMine contract", function () {
     await devtMine.connect(buyerAddress[0]).init();
 
     await increaseWorldTimeInDays(10, true);
-    await devtMine.kill();
+    await expect(devtMine.recycleLeftovers()).to.be.revertedWith("Will not recycle before end");
+ 
+
+    await increaseWorldTimeInDays(21, true);
+    await devtMine.recycleLeftovers();
     let devtMineDvtBalance = await dvtToken.balanceOf(devtMine.address);
 
     expect(
       parseInt(hre.ethers.utils.formatEther(devtMineDvtBalance.toString()))
     ).to.equal(0);
-
-    await increaseWorldTimeInDays(21, true);
-    await expect(devtMine.kill()).to.be.revertedWith("Will not kill after end");
+    
   });
 });
