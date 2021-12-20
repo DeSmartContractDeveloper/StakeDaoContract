@@ -6,28 +6,16 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
-contract DevtMine is Ownable {
+contract DevtLpMine is Ownable {
     using SafeERC20 for ERC20;
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    // lock time
-    enum Lock {
-        oneWeek,
-        twoWeeks,
-        oneMonth
-    }
-
-    uint256 public constant DAY = 60 * 60 * 24;
-    uint256 public constant ONE_WEEK = DAY * 7;
-    uint256 public constant TWO_WEEKS = ONE_WEEK * 2;
-    uint256 public constant ONE_MONTH = DAY * 30;
-    uint256 public constant LIFECYCLE = ONE_MONTH;
+    uint256 public constant LIFECYCLE = 60 * 60 * 24 * 30;
     uint256 public constant ONE = 1e18;
 
-    // Devt token addr
+    // DevtLp token addr
     ERC20 public immutable devt;
-    // Dvt token addr （These two addresses can be the same）
     ERC20 public immutable dvt;
 
     uint256 public endTimestamp;
@@ -38,7 +26,6 @@ contract DevtMine is Ownable {
 
     //Cumulative revenue per lp token
     uint256 public accDvtPerShare;
-    uint256 public totalLpToken;
     uint256 public devtTotalDeposits;
     uint256 public lastRewardTimestamp;
 
@@ -47,10 +34,7 @@ contract DevtMine is Ownable {
 
     struct UserInfo {
         uint256 depositAmount;
-        uint256 lpAmount;
-        uint256 lockedUntil;
         int256 rewardDebt;
-        Lock lock;
         bool isDeposit;
     }
 
@@ -101,7 +85,7 @@ contract DevtMine is Ownable {
             lastRewardTimestamp < endTimestamp &&
             endTimestamp != 0
         ) {
-            uint256 lpSupply = totalLpToken;
+            uint256 lpSupply = devtTotalDeposits;
             if (lpSupply > 0) {
                 uint256 timeDelta;
                 if (block.timestamp > endTimestamp) {
@@ -161,26 +145,6 @@ contract DevtMine is Ownable {
         util = (devtTotalDeposits * ONE) / targetPledgeAmount;
     }
 
-    /// @notice Get mining efficiency bonus for different pledge time
-    function getBoost(Lock _lock)
-        public
-        pure
-        returns (uint256 boost, uint256 timelock)
-    {
-        if (_lock == Lock.oneWeek) {
-            // 20%
-            return (2e17, ONE_WEEK);
-        } else if (_lock == Lock.twoWeeks) {
-            // 50%
-            return (5e17, TWO_WEEKS);
-        } else if (_lock == Lock.oneMonth) {
-            // 100%
-            return (1e18, ONE_MONTH);
-        } else {
-            revert("Invalid lock value");
-        }
-    }
-
     /// @notice Get the user's cumulative revenue as of the current time
     function pendingRewards(address _user)
         external
@@ -189,7 +153,7 @@ contract DevtMine is Ownable {
     {
         UserInfo storage user = userInfo[_user];
         uint256 _accDvtPerShare = accDvtPerShare;
-        uint256 lpSupply = totalLpToken;
+        uint256 lpSupply = devtTotalDeposits;
         if (block.timestamp > lastRewardTimestamp && dvtPerSecond != 0) {
             uint256 timeDelta;
             if (block.timestamp > endTimestamp) {
@@ -201,51 +165,27 @@ contract DevtMine is Ownable {
             _accDvtPerShare += (dvtReward * ONE) / lpSupply;
         }
 
-        pending = (((user.lpAmount * _accDvtPerShare) / ONE).toInt256() -
+        pending = (((user.depositAmount * _accDvtPerShare) / ONE).toInt256() -
             user.rewardDebt).toUint256();
     }
-
     /// @notice Pledge devt
-    function deposit(uint256 _amount, Lock _lock) external {
-        require(!userInfo[msg.sender].isDeposit, "Already desposit");
+    function deposit(uint256 _amount) external {
         updateRewards();
         require(endTimestamp != 0, "Not initialized");
-
-        if (_lock == Lock.oneWeek) {
-            // give 1 DAY of grace period
-            require(
-                block.timestamp + ONE_WEEK - DAY <= endTimestamp,
-                "Less than 1 weeks left"
-            );
-        } else if (_lock == Lock.twoWeeks) {
-            // give 1 DAY of grace period
-            require(
-                block.timestamp + TWO_WEEKS - DAY <= endTimestamp,
-                "Less than 2 weeks left"
-            );
-        } else if (_lock == Lock.oneMonth) {
-            // give 3 DAY of grace period
-            require(
-                block.timestamp + ONE_MONTH - 3 * DAY <= endTimestamp,
-                "Less than 1 month left"
-            );
-        } else {
-            revert("Invalid lock value");
-        }
-
-        (uint256 boost, uint256 timelock) = getBoost(_lock);
-        uint256 lpAmount = _amount + (_amount * boost) / ONE;
+        require(block.timestamp < endTimestamp, "Will not deposit after end");
         devtTotalDeposits += _amount;
-        totalLpToken += lpAmount;
 
-        userInfo[msg.sender] = UserInfo(
+        if(userInfo[msg.sender].isDeposit){
+            userInfo[msg.sender].depositAmount +=_amount;
+            userInfo[msg.sender].rewardDebt += ((_amount * accDvtPerShare) / ONE).toInt256();
+        } else {
+            userInfo[msg.sender] = UserInfo(
             _amount,
-            lpAmount,
-            block.timestamp + timelock,
-            ((lpAmount * accDvtPerShare) / ONE).toInt256(),
-            _lock,
+            ((_amount * accDvtPerShare) / ONE).toInt256(),
             true
         );
+        }
+        
 
         devt.safeTransferFrom(msg.sender, address(this), _amount);
 
@@ -253,25 +193,16 @@ contract DevtMine is Ownable {
         refreshDevtRate();
     }
 
-    /// @notice Withdraw the principal and income after maturity
+    /// @notice Withdraw the principal and income
     function withdraw() external {
         updateRewards();
         UserInfo storage user = userInfo[msg.sender];
 
-        require(user.depositAmount > 0, "Position does not exists");
+        require(user.depositAmount > 0, "Position does not exists");    
 
-        // anyone can withdraw when mine ends or kill swith was used
-        if (block.timestamp < endTimestamp) {
-            require(
-                block.timestamp >= user.lockedUntil,
-                "Position is still locked"
-            );
-        }
-
-        totalLpToken -= user.lpAmount;
         devtTotalDeposits -= user.depositAmount;
 
-        int256 accumulatedDvt = ((user.lpAmount * accDvtPerShare) / ONE)
+        int256 accumulatedDvt = ((user.depositAmount * accDvtPerShare) / ONE)
             .toInt256();
         uint256 _pendingDvt = (accumulatedDvt - user.rewardDebt).toUint256();
 
@@ -281,11 +212,11 @@ contract DevtMine is Ownable {
         if (_pendingDvt != 0) {
             dvt.safeTransfer(msg.sender, _pendingDvt);
         }
-
         emit Harvest(msg.sender, _pendingDvt);
         emit Withdraw(msg.sender, user.depositAmount);
-        delete userInfo[msg.sender];
+         delete userInfo[msg.sender];
         refreshDevtRate();
+       
     }
 
     /// @notice After the event is over, recover the unearthed dvt
