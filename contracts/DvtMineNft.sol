@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-pragma solidity ^0.8.4;
+pragma solidity 0.8.11;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -30,10 +30,6 @@ contract DvtMineNft is ERC721, ReentrancyGuard {
 
     ERC20 public immutable dvt;
     uint256 public immutable minStakeAmount;
-    uint256 public constant DAY = 60 * 60 * 24;
-    uint256 public constant ONE_WEEK = DAY * 7;
-    uint256 public constant TWO_WEEKS = ONE_WEEK * 2;
-    uint256 public constant ONE_MONTH = DAY * 30;
 
     constructor(
         address _dvt,
@@ -55,11 +51,11 @@ contract DvtMineNft is ERC721, ReentrancyGuard {
         returns (uint256 stakeAmount, uint256 timelock)
     {
         if (_lock == Lock.oneWeek) {
-            return (minStakeAmount * 4, ONE_WEEK);
+            return (minStakeAmount * 4, 1 weeks);
         } else if (_lock == Lock.twoWeeks) {
-            return (minStakeAmount * 2, TWO_WEEKS);
+            return (minStakeAmount * 2, 2 weeks);
         } else if (_lock == Lock.oneMonth) {
-            return (minStakeAmount, ONE_MONTH);
+            return (minStakeAmount, 30 days);
         } else {
             revert("Invalid lock value");
         }

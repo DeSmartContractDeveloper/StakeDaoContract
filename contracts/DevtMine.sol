@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.11;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -18,12 +18,7 @@ contract DevtMine is Ownable {
         oneMonth
     }
 
-    uint256 public constant DAY = 60 * 60 * 24;
-    uint256 public constant ONE_WEEK = DAY * 7;
-    uint256 public constant TWO_WEEKS = ONE_WEEK * 2;
-    uint256 public constant ONE_MONTH = DAY * 30;
-    uint256 public constant LIFECYCLE = ONE_MONTH;
-    uint256 public constant ONE = 1e18;
+    uint256 public constant LIFECYCLE = 30 days;
 
     // Devt token addr
     ERC20 public immutable devt;
@@ -113,7 +108,7 @@ contract DevtMine is Ownable {
                 }
                 uint256 dvtReward = timeDelta * dvtPerSecond;
                 totalRewardsEarned += dvtReward;
-                accDvtPerShare += (dvtReward * ONE) / lpSupply;
+                accDvtPerShare += (dvtReward * 1 ether) / lpSupply;
             }
             emit LogUpdateRewards(
                 lastRewardTimestamp,
@@ -158,7 +153,7 @@ contract DevtMine is Ownable {
 
     /// @notice Get mining utilization
     function utilization() public view returns (uint256 util) {
-        util = (devtTotalDeposits * ONE) / targetPledgeAmount;
+        util = (devtTotalDeposits * 1 ether) / targetPledgeAmount;
     }
 
     /// @notice Get mining efficiency bonus for different pledge time
@@ -169,13 +164,13 @@ contract DevtMine is Ownable {
     {
         if (_lock == Lock.oneWeek) {
             // 20%
-            return (2e17, ONE_WEEK);
+            return (2e17, 1 weeks);
         } else if (_lock == Lock.twoWeeks) {
             // 50%
-            return (5e17, TWO_WEEKS);
+            return (5e17, 2 weeks);
         } else if (_lock == Lock.oneMonth) {
             // 100%
-            return (1e18, ONE_MONTH);
+            return (1e18, 30 days);
         } else {
             revert("Invalid lock value");
         }
@@ -198,10 +193,10 @@ contract DevtMine is Ownable {
                 timeDelta = block.timestamp - lastRewardTimestamp;
             }
             uint256 dvtReward = timeDelta * dvtPerSecond;
-            _accDvtPerShare += (dvtReward * ONE) / lpSupply;
+            _accDvtPerShare += (dvtReward * 1 ether) / lpSupply;
         }
 
-        pending = (((user.lpAmount * _accDvtPerShare) / ONE).toInt256() -
+        pending = (((user.lpAmount * _accDvtPerShare) / 1 ether).toInt256() -
             user.rewardDebt).toUint256();
     }
 
@@ -214,19 +209,19 @@ contract DevtMine is Ownable {
         if (_lock == Lock.oneWeek) {
             // give 1 DAY of grace period
             require(
-                block.timestamp + ONE_WEEK - DAY <= endTimestamp,
+                block.timestamp + 1 weeks - 1 days <= endTimestamp,
                 "Less than 1 weeks left"
             );
         } else if (_lock == Lock.twoWeeks) {
             // give 1 DAY of grace period
             require(
-                block.timestamp + TWO_WEEKS - DAY <= endTimestamp,
+                block.timestamp + 2 weeks - 1 days <= endTimestamp,
                 "Less than 2 weeks left"
             );
         } else if (_lock == Lock.oneMonth) {
             // give 3 DAY of grace period
             require(
-                block.timestamp + ONE_MONTH - 3 * DAY <= endTimestamp,
+                block.timestamp + 30 days - 3 days <= endTimestamp,
                 "Less than 1 month left"
             );
         } else {
@@ -234,7 +229,7 @@ contract DevtMine is Ownable {
         }
 
         (uint256 boost, uint256 timelock) = getBoost(_lock);
-        uint256 lpAmount = _amount + (_amount * boost) / ONE;
+        uint256 lpAmount = _amount + (_amount * boost) / 1 ether;
         devtTotalDeposits += _amount;
         totalLpToken += lpAmount;
 
@@ -242,7 +237,7 @@ contract DevtMine is Ownable {
             _amount,
             lpAmount,
             block.timestamp + timelock,
-            ((lpAmount * accDvtPerShare) / ONE).toInt256(),
+            ((lpAmount * accDvtPerShare) / 1 ether).toInt256(),
             _lock,
             true
         );
@@ -271,7 +266,7 @@ contract DevtMine is Ownable {
         totalLpToken -= user.lpAmount;
         devtTotalDeposits -= user.depositAmount;
 
-        int256 accumulatedDvt = ((user.lpAmount * accDvtPerShare) / ONE)
+        int256 accumulatedDvt = ((user.lpAmount * accDvtPerShare) / 1 ether)
             .toInt256();
         uint256 _pendingDvt = (accumulatedDvt - user.rewardDebt).toUint256();
 

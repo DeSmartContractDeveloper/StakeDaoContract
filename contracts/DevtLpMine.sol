@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.11;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -11,8 +11,7 @@ contract DevtLpMine is Ownable {
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    uint256 public constant LIFECYCLE = 60 * 60 * 24 * 30;
-    uint256 public constant ONE = 1e18;
+    uint256 public constant LIFECYCLE = 30 days;
 
     // DevtLp token addr
     ERC20 public immutable devt;
@@ -97,7 +96,7 @@ contract DevtLpMine is Ownable {
                 }
                 uint256 dvtReward = timeDelta * dvtPerSecond;
                 totalRewardsEarned += dvtReward;
-                accDvtPerShare += (dvtReward * ONE) / lpSupply;
+                accDvtPerShare += (dvtReward * 1 ether) / lpSupply;
             }
             emit LogUpdateRewards(
                 lastRewardTimestamp,
@@ -142,7 +141,7 @@ contract DevtLpMine is Ownable {
 
     /// @notice Get mining utilization
     function utilization() public view returns (uint256 util) {
-        util = (devtTotalDeposits * ONE) / targetPledgeAmount;
+        util = (devtTotalDeposits * 1 ether) / targetPledgeAmount;
     }
 
     /// @notice Get the user's cumulative revenue as of the current time
@@ -162,10 +161,10 @@ contract DevtLpMine is Ownable {
                 timeDelta = block.timestamp - lastRewardTimestamp;
             }
             uint256 dvtReward = timeDelta * dvtPerSecond;
-            _accDvtPerShare += (dvtReward * ONE) / lpSupply;
+            _accDvtPerShare += (dvtReward * 1 ether) / lpSupply;
         }
 
-        pending = (((user.depositAmount * _accDvtPerShare) / ONE).toInt256() -
+        pending = (((user.depositAmount * _accDvtPerShare) / 1 ether).toInt256() -
             user.rewardDebt).toUint256();
     }
     /// @notice Pledge devt
@@ -177,11 +176,11 @@ contract DevtLpMine is Ownable {
 
         if(userInfo[msg.sender].isDeposit){
             userInfo[msg.sender].depositAmount +=_amount;
-            userInfo[msg.sender].rewardDebt += ((_amount * accDvtPerShare) / ONE).toInt256();
+            userInfo[msg.sender].rewardDebt += ((_amount * accDvtPerShare) / 1 ether).toInt256();
         } else {
             userInfo[msg.sender] = UserInfo(
             _amount,
-            ((_amount * accDvtPerShare) / ONE).toInt256(),
+            ((_amount * accDvtPerShare) / 1 ether).toInt256(),
             true
         );
         }
@@ -202,7 +201,7 @@ contract DevtLpMine is Ownable {
 
         devtTotalDeposits -= user.depositAmount;
 
-        int256 accumulatedDvt = ((user.depositAmount * accDvtPerShare) / ONE)
+        int256 accumulatedDvt = ((user.depositAmount * accDvtPerShare) / 1 ether)
             .toInt256();
         uint256 _pendingDvt = (accumulatedDvt - user.rewardDebt).toUint256();
 
